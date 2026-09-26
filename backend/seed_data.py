@@ -9,14 +9,21 @@ from app.db.repository import save_visits_batch, save_ingestion_audit
 def seed_sample_datasets():
     init_db()
     
-    # Locate dataset directory
-    base_dir = Path(__file__).resolve().parent.parent
-    dataset_dir = base_dir / "swasthiq_sample_billing_dataset"
-    if not dataset_dir.exists():
-        dataset_dir = base_dir.parent / "swasthiq_sample_billing_dataset"
+    # Locate dataset directory across various deployment directory layouts
+    candidates = [
+        Path(__file__).resolve().parent.parent / "swasthiq_sample_billing_dataset",
+        Path(__file__).resolve().parent / "swasthiq_sample_billing_dataset",
+        Path.cwd() / "swasthiq_sample_billing_dataset",
+        Path.cwd().parent / "swasthiq_sample_billing_dataset"
+    ]
+    dataset_dir = None
+    for cand in candidates:
+        if cand.exists():
+            dataset_dir = cand
+            break
     
-    if not dataset_dir.exists():
-        print(f"Dataset directory not found at {dataset_dir}")
+    if not dataset_dir:
+        print("Dataset directory 'swasthiq_sample_billing_dataset' not found in any standard path")
         return
 
     pattern = str(dataset_dir / "billing_log_*.json")
